@@ -476,3 +476,99 @@
     color: #94a3b8;
     flex-shrink: 0;
 }
+
+.tabla-gastos-wrapper {
+    width: 70%;
+    margin-top: 8px;
+    overflow-x: auto;
+}
+
+.tabla-gastos-header,
+.tabla-gastos-fila {
+    display: grid;
+    grid-template-columns: 0.9fr 0.7fr 1fr 0.6fr 0.7fr;
+    gap: 6px;
+    align-items: center;
+}
+
+.tabla-gastos-header {
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    white-space: nowrap;
+}
+
+    .tabla-gastos-header span:nth-child(4),
+    .tabla-gastos-header span:nth-child(5) {
+        text-align: right;
+    }
+
+.tabla-gastos-fila {
+    padding: 8px 10px;
+    font-size: 13px;
+    color: #1e293b;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+    .tabla-gastos-fila:hover {
+        background: #f8fafc;
+    }
+
+.gasto-categoria {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gasto-fecha {
+    color: #64748b;
+}
+
+.gasto-comentario {
+    color: #94a3b8;
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.gasto-monto {
+    font-weight: 500;
+    color: #1e293b;
+    text-align: right;
+}
+
+.gasto-restante {
+    font-weight: 500;
+    color: #16a34a;
+    text-align: right;
+}
+
+.fila-par {
+    background: #f8fafc;
+}
+
+.mensaje-vacio {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-style: italic;
+}
+
+.color-rojo {
+    color: #ef4444 !important;
+}
+
+.color-amarillo {
+    color: #f59e0b !important;
+}
+
+.color-verde {
+    color: #22c55e !important;
+}

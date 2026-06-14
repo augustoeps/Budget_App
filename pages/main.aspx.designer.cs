@@ -87,6 +87,15 @@ namespace Presupuesto.pages
         protected global::System.Web.UI.WebControls.HiddenField hfIngresoNuevo;
 
         /// <summary>
+        /// Control hfPresupuesto.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfPresupuesto;
+
+        /// <summary>
         /// Control ddlAnio.
         /// </summary>
         /// <remarks>
@@ -130,6 +139,24 @@ namespace Presupuesto.pages
         /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnGuardarCategorias;
+
+        /// <summary>
+        /// Control RptGastos.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater RptGastos;
+
+        /// <summary>
+        /// Control pnlSinGastos.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlSinGastos;
 
         /// <summary>
         /// Control lblMesModal.

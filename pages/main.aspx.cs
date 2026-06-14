@@ -35,6 +35,7 @@ namespace Presupuesto.pages
                 //carga todos los datos de la pagina principal
                 CargarDatosMes(mesActual, anioActual);
                 CargarCategoriasDropdown();
+                //MostrarGastos();
 
 
 
@@ -93,8 +94,11 @@ namespace Presupuesto.pages
             int mes = int.Parse(partes[0]);
             int Anio = int.Parse(partes[1]);
 
+            hfMesSeleccionado.Value = mes.ToString();
+            hfAnio.Value = Anio.ToString();
+
             DataTable mesAnio = PeriodoData.ObtenerMesyAnio(mes, Anio);
-            DataTable presuestoCategoria = PresupuestoCategoriaData.ObtenerCategoriasPorMes(mes,Anio);
+            DataTable presuestoCategoria = PresupuestoCategoriaData.ObtenerCategoriasPorMes(mes, Anio);
             if (mesAnio.Rows.Count > 0)
             {
 
@@ -102,6 +106,7 @@ namespace Presupuesto.pages
                 {
                     rptCategorias.DataSource = presuestoCategoria;
                     rptCategorias.DataBind();
+
 
 
                 }
@@ -123,7 +128,7 @@ namespace Presupuesto.pages
                     rptCategorias.DataBind();
 
                 }
-                
+
 
             }
             else
@@ -145,6 +150,7 @@ namespace Presupuesto.pages
 
             }
             MostrarIngreso(mesAnio);
+            MostrarGastos();
         }
 
         private void MostrarIngreso(DataTable dt)
@@ -173,7 +179,7 @@ namespace Presupuesto.pages
             PeriodoData.InsertarPeriodo(mes, anio, ingreso);
 
             txtIngreso.Text = string.Empty;
-
+            lblPresupuestoRestante.Text = ingreso.ToString("N2") + " €";
             ScriptManager.RegisterStartupScript(this, this.GetType(),
             "cerrarModal",
             "$('#modalNuevoPresupuesto').modal('hide');",
@@ -256,7 +262,7 @@ namespace Presupuesto.pages
             //despues de salir del bucles solo ejecuto 1 vez la operacion de insertar
             List<(int categoriaId, decimal monto)> datos = new List<(int, decimal)>();
 
-           
+
 
             foreach (RepeaterItem valor in rptCategorias.Items)
             {
@@ -302,13 +308,13 @@ namespace Presupuesto.pages
                     rptCategorias.DataBind();
                 }
             }
-
+            MostrarGastos();
             MostrarIngreso(mesAnio);
         }
 
         protected void btnGuardarGasto_Click(Object sender, EventArgs e) {
 
-            
+
             int categoria = int.Parse(ddlCrearGasto.SelectedValue);
             decimal gasto = decimal.Parse(txtMontoGasto.Text);
             string comentario = txtComentarioGasto.Text;
@@ -329,18 +335,76 @@ namespace Presupuesto.pages
 
             System.Diagnostics.Debug.WriteLine("PeriodoId: " + PeriodoID);
             System.Diagnostics.Debug.WriteLine("CategoriaId: " + categoria);
-            
+
             DATA.GastoData.InsertarGasto(PeriodoID, categoria, gasto, fecha, comentario);
 
+            MostrarGastos();
+
+        }
+
+        protected void MostrarGastos()
+        {
+            int mes = int.Parse(hfMesSeleccionado.Value);
+            int anio = int.Parse(hfAnio.Value);
+            DataTable datos = DATA.GastoData.ObtenerGastos(mes, anio);
+
+            if (datos.Rows.Count > 0)
+            {
+                RptGastos.DataSource = datos;
+                RptGastos.DataBind();
+                pnlSinGastos.Visible = false;
+            }
+            else
+            {
+                RptGastos.DataSource = null;
+                RptGastos.DataBind();
+                pnlSinGastos.Visible = true;
+            }
+
+            if (datos.Rows.Count > 0 && datos.Columns.Contains("PresupuestoRestante"))
+            {
+                decimal restante = Convert.ToDecimal(datos.Rows[0]["PresupuestoRestante"]);
+                lblPresupuestoRestante.Text = restante.ToString("N2") + " €";
+            }
+            else
+            {
+                // Sin gastos: el restante es igual al ingreso del período
+                DataTable mesAnio = PeriodoData.ObtenerMesyAnio(mes, anio);
+
+                if (mesAnio.Rows.Count > 0)
+                {
+                    decimal ingreso = Convert.ToDecimal(mesAnio.Rows[0]["Ingreso"]);
+                    lblPresupuestoRestante.Text = ingreso.ToString("N2") + " €";
+                }
+                else
+                {
+                    lblPresupuestoRestante.Text = "0,00 €";
+                }
+            }
+        }
+
+        protected string ObtenerClaseRestante(object CategoriaRestante, object MontoAsignado)
+        {
+            decimal restante = Convert.ToDecimal(CategoriaRestante);
+            decimal asignado = Convert.ToDecimal(MontoAsignado);
+
+            if (asignado == 0) return "color-rojo"; // evitar división por cero
+
+            decimal porcentajeRestante = (restante / asignado) * 100;
+
+            if (porcentajeRestante <= 20)
+            {
+                return "color-rojo";       // queda 20% o menos → alarma
+            }
+            else if (porcentajeRestante <= 50)
+            {
+                return "color-amarillo";   // queda entre 20% y 50% → atención
+            }
+
+            return "color-verde";          // queda más del 50% → bien
+        }
 
 
 
         }
-
-
     }
-
-
-
-
-}

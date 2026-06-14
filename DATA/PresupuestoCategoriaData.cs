@@ -16,13 +16,21 @@ namespace Presupuesto.DATA
 
             string sSQL = @"SELECT c.CategoriaId,c.Nombre, 
                                    c.Icono, 
-                                   pc.MontoAsignado
+                                   pc.MontoAsignado,
+                                   pc.MontoAsignado - COALESCE(SUM(g.Monto), 0) as Sobrante
                             FROM PRESUPUESTO_CATEGORIA pc
                             INNER JOIN CATEGORIA c ON c.CategoriaId = pc.CategoriaId
                             INNER JOIN PERIODO p   ON p.PeriodoId   = pc.PeriodoId
+                            LEFT JOIN GASTO g ON  g.CategoriaId = pc.CategoriaId AND g.PeriodoId = pc.PeriodoId
                             WHERE p.Mes  = @mes
                             AND   p.Anio = @anio
-                            ORDER BY c.OrdenVisualizacion";
+                            GROUP BY
+                               c.CategoriaId,
+                                c.Nombre,
+                                c.Icono,
+                                pc.MontoAsignado,
+                                c.OrdenVisualizacion
+                            ORDER BY c.OrdenVisualizacion;";
 
             using (SqlConnection cn = new SqlConnection(conexion))
             {

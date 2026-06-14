@@ -57,6 +57,8 @@
    <asp:HiddenField ID="hfMesSeleccionado" runat="server" Value="" />
     <asp:HiddenField ID="hfNombreMes" runat="server" Value="" />
     <asp:HiddenField ID="hfIngresoNuevo" runat="server" Value="" />
+    <asp:HiddenField ID="hfPresupuesto" runat="server" Value="" />
+
 
   <div class="aside-section-label" style="display:flex; align-items:center; justify-content:space-between;">
     <span>Períodos</span>
@@ -139,15 +141,17 @@
                       <p class="monto-label">Inicial</p>
                       <asp:TextBox ID="txtMonto" runat="server"
                           CssClass="monto-textbox"
-                          Text='<%# string.Format("{0:N2}", Eval("MontoAsignado")) %>'>
+                          Text='<%#  string.Format("{0:N2}", Eval("MontoAsignado")) %>'>
                       </asp:TextBox>
                     </div>
                     <div class="monto-bloque">
                       <p class="monto-label">Restante</p>
-                      <asp:Label ID="lblRestante" runat="server"
-                          CssClass="monto-valor color-verde"
-                          Text='<%# string.Format("{0:N2} €", Eval("MontoAsignado")) %>'>
-                      </asp:Label>
+                      <asp:Label 
+                            ID="label1" 
+                            runat="server"
+                            CssClass='<%# "monto-textbox " + ObtenerClaseRestante(Eval("Sobrante"), Eval("MontoAsignado")) %>'
+                            Text='<%# string.Format("{0:N2}", Eval("Sobrante")) %>'>
+                       </asp:Label>
                     </div>
                   </div>
                   <asp:HiddenField ID="hfCategoriaId" runat="server"
@@ -170,6 +174,37 @@
 
     </div>
   </div>
+      <div class="tabla-gastos-wrapper">
+       <div class="tabla-gastos-header">
+    <span>Categoría</span>
+    <span>Fecha</span>
+    <span>Comentario</span>
+    <span>Monto</span>
+    <span>Categoria Restante</span>
+</div>
+
+<asp:Repeater ID="RptGastos" runat="server">
+    
+
+    <ItemTemplate>
+        <div class="tabla-gastos-fila">
+            <span class="gasto-categoria"><%# Eval("Nombre") %></span>
+            <span class="gasto-fecha"><%# Convert.ToDateTime(Eval("Fecha")).ToString("dd/MM/yyyy") %></span>
+            <span class="gasto-comentario"><%# Eval("Comentario") ?? "-" %></span>
+            <span class="gasto-monto"><%# string.Format("{0:N2} €", Eval("Monto")) %></span>
+            <span class="gasto-monto <%# ObtenerClaseRestante(Eval("CategoriaRestante"), Eval("MontoAsignado")) %>">
+                <%# string.Format("{0:N2} €", Eval("CategoriaRestante")) %>
+            </span>
+            
+             
+        </div>
+    </ItemTemplate>
+</asp:Repeater>
+
+          <asp:Panel ID="pnlSinGastos" runat="server" Visible="false" CssClass="mensaje-vacio">
+    Aún no existen gastos en este mes.
+</asp:Panel>
+
 </main>
     
 
