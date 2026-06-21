@@ -1,4 +1,5 @@
-﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.master.cs" Inherits="Presupuesto.SiteMaster" %>
+﻿```
+<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.master.cs" Inherits="Presupuesto.SiteMaster" %>
 
 <!DOCTYPE html>
 
@@ -68,3 +69,5 @@
     </asp:PlaceHolder>
 </body>
 </html>
+
+```

@@ -64,12 +64,12 @@ namespace Presupuesto.DATA
             return db;
         }
 
-        public static void InsertarPeriodo(int mes, int anio, decimal ingreso)
+        public static void InsertarPeriodo(int mes, int anio, decimal ingreso,decimal ahorro)
         {
             string conexion = ConfigurationManager.ConnectionStrings["Presupuesto"].ConnectionString;
 
-            string sSQL = @"INSERT INTO PERIODO (Anio, Mes, Ingreso) 
-                    VALUES (@anio, @mes, @ingreso)";
+            string sSQL = @"INSERT INTO PERIODO (Anio, Mes, Ingreso,Ahorro) 
+                    VALUES (@anio, @mes, @ingreso,@ahorro)";
 
             using (SqlConnection cn = new SqlConnection(conexion))
             {
@@ -78,7 +78,7 @@ namespace Presupuesto.DATA
                     cmd.Parameters.AddWithValue("@anio", anio);
                     cmd.Parameters.AddWithValue("@mes", mes);
                     cmd.Parameters.AddWithValue("@ingreso", ingreso);
-
+                    cmd.Parameters.AddWithValue("@ahorro", ahorro);
                     cn.Open();
                     cmd.ExecuteNonQuery();
                 }

@@ -14,7 +14,7 @@
     <%-- Tabler Icons --%>
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    s
+    
 </head>
 
 <form id="form1" runat="server">
@@ -58,7 +58,8 @@
     <asp:HiddenField ID="hfNombreMes" runat="server" Value="" />
     <asp:HiddenField ID="hfIngresoNuevo" runat="server" Value="" />
     <asp:HiddenField ID="hfPresupuesto" runat="server" Value="" />
-
+    <asp:HiddenField ID="hfGastoIdEliminar" runat="server" Value="" />
+    <asp:HiddenField ID="hfEditarGasto" runat="server" Value="" />    
 
   <div class="aside-section-label" style="display:flex; align-items:center; justify-content:space-between;">
     <span>Períodos</span>
@@ -174,36 +175,75 @@
 
     </div>
   </div>
-      <div class="tabla-gastos-wrapper">
+  <div class="gastos-seccion">
+    <div class="tabla-gastos-wrapper">
        <div class="tabla-gastos-header">
-    <span>Categoría</span>
-    <span>Fecha</span>
-    <span>Comentario</span>
-    <span>Monto</span>
-    <span>Categoria Restante</span>
-</div>
-
-<asp:Repeater ID="RptGastos" runat="server">
-    
-
-    <ItemTemplate>
-        <div class="tabla-gastos-fila">
-            <span class="gasto-categoria"><%# Eval("Nombre") %></span>
-            <span class="gasto-fecha"><%# Convert.ToDateTime(Eval("Fecha")).ToString("dd/MM/yyyy") %></span>
-            <span class="gasto-comentario"><%# Eval("Comentario") ?? "-" %></span>
-            <span class="gasto-monto"><%# string.Format("{0:N2} €", Eval("Monto")) %></span>
-            <span class="gasto-monto <%# ObtenerClaseRestante(Eval("CategoriaRestante"), Eval("MontoAsignado")) %>">
-                <%# string.Format("{0:N2} €", Eval("CategoriaRestante")) %>
-            </span>
-            
-             
+            <span>Categoría</span>
+            <span>Fecha</span>
+            <span>Comentario</span>
+            <span>Monto</span>
+            <span>Categoria Restante</span>
+            <span>Opciones</span>
         </div>
-    </ItemTemplate>
-</asp:Repeater>
 
-          <asp:Panel ID="pnlSinGastos" runat="server" Visible="false" CssClass="mensaje-vacio">
-    Aún no existen gastos en este mes.
-</asp:Panel>
+        <div class="tabla-gastos-scroll">
+            <asp:Repeater ID="RptGastos" runat="server">
+                <ItemTemplate>
+                    <div class="tabla-gastos-fila">
+                        <span class="gasto-categoria"><%# Eval("Nombre") %></span>
+                        <span class="gasto-fecha"><%# Convert.ToDateTime(Eval("Fecha")).ToString("dd/MM/yyyy") %></span>
+                        <span class="gasto-comentario"><%# Eval("Comentario") ?? "-" %></span>
+                        <span class="gasto-monto"><%# string.Format("{0:N2} €", Eval("Monto")) %></span>
+                        <span class="gasto-monto <%# ObtenerClaseRestante(Eval("CategoriaRestante"), Eval("MontoAsignado")) %>">
+                            <%# string.Format("{0:N2} €", Eval("CategoriaRestante")) %>
+                        </span>
+                        <span class="gasto-opciones">
+                        <button type="button"
+                            class="btn-icono btn-editar-gasto"
+                            onclick="abrirModalEditarGasto(this)"
+                            data-gastoid='<%# Eval("GastoId") %>'
+                            data-categoriaid='<%# Eval("CategoriaId")%>'
+                            data-categoria='<%# Eval("Nombre") %>'
+                            data-monto='<%# Convert.ToDecimal(Eval("Monto")).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) %>'
+                            data-comentario='<%# Eval("Comentario") == DBNull.Value ? "" : Eval("Comentario") %>'
+                            data-fecha='<%# Convert.ToDateTime(Eval("Fecha")).ToString("yyyy-MM-dd") %>'
+                            title="Editar">
+                            <i class="ti ti-edit"></i>
+                        </button>
+
+                        <button type="button" 
+                            class="btn-icono btn-eliminar-gasto"
+                            onclick="abrirModalConfirmarEliminar(this)"
+                            data-gastoid='<%# Eval("GastoId") %>'
+                            data-categoria='<%# Eval("Nombre") %>'
+                            data-monto='<%# string.Format("{0:N2}", Eval("Monto")) %>'
+                            title="Eliminar">
+                            <i class="ti ti-trash"></i>
+                        </button>
+                        </span>
+                        <asp:HiddenField ID="HiddenFieldTablaGasto" runat="server"
+                            Value='<%# Eval("GastoId") %>' />
+                    </div>
+                </ItemTemplate>
+            </asp:Repeater>
+
+            <asp:Panel ID="pnlSinGastos" runat="server" Visible="false" CssClass="mensaje-vacio">
+                Aún no existen gastos en este mes.
+            </asp:Panel>
+        </div>
+    </div>
+
+    <div class="filtro-categoria">
+    <p class="panel-label">Filtrar por categoría</p>
+    <asp:DropDownList ID="ddlFiltrarGastos" runat="server" 
+        CssClass="filtro-categoria-ddl">
+    </asp:DropDownList>
+    <asp:Button runat="server" ID="Button1"
+        CssClass="btn-filtrar-gastos"
+        Text="Filtrar" OnClick="FiltrarGastos" />
+</div>
+</div>
+        
 
 </main>
     
@@ -238,6 +278,15 @@
                     <div class="input-group">
                         <span class="input-group-text">€</span>
                         <asp:TextBox ID="txtIngreso" runat="server"
+                            CssClass="form-control"
+                            placeholder="0,00"
+                            TextMode="Number">
+                        </asp:TextBox>
+                    </div>
+                    <label class="form-label fw-500">Ahorro del mes</label>
+                    <div class="input-group">
+                        <span class="input-group-text">€</span>
+                        <asp:TextBox ID="TxtAhorro" runat="server"
                             CssClass="form-control"
                             placeholder="0,00"
                             TextMode="Number">
@@ -330,7 +379,7 @@
           <label class="gasto-label">Monto</label>
           <div class="gasto-input-box">
             <span class="gasto-euro">€</span>
-            <asp:TextBox ID="txtMontoGasto" runat="server" CssClass="form-control" TextMode="Number" step="0.01" placeholder="0,00"></asp:TextBox>
+            <asp:TextBox ID="txtMontoGasto" runat="server" CssClass="form-control" TextMode="Number" step="0.01" min="0.01" placeholder="0,00"></asp:TextBox>
           </div>
         </div>
 
@@ -356,11 +405,51 @@
         <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
         <asp:Button ID="btnGuardarGasto" runat="server" Text="Guardar gasto"
             CssClass="btn btn-primary btn-sm"
-            OnClick="btnGuardarGasto_Click" />
+            OnClick="btnGuardarGasto_Click"
+            OnClientClick="return validarMontoGasto();"/>
       </div>
 
     </div>
   </div>
+</div>
+
+
+        <!-- MODAL PARA CONFIRMAR ELIMINACION DE GASTO-->
+    <div class="modal fade" id="modalEliminarGasto" tabindex="-1"
+ data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+        <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title">
+                <i class="ti ti-trash me-2 text-danger"></i>
+                Confirmar Eliminación
+            </h5>
+        </div>
+
+        <div class="modal-body">
+            <p class="text-muted">
+                ¿Estás seguro que deseas eliminar el gasto de
+                <strong><span id="spanCategoriaEliminar"></span></strong> de monto
+                <strong><span id="spanMontoEliminar"></span> €</strong>
+            </p>
+        </div>
+
+        <div class="modal-footer border-0 pt-0">
+            <button type="button" class="btn btn-outline-secondary"
+                    id="btnCancelarEliminar"
+                    data-bs-dismiss="modal">
+                Cancelar
+            </button>
+            <asp:Button ID="btnConfirmarEliminar" runat="server"
+                Text="Confirmar"
+                CssClass="btn btn-primary"
+                
+                OnClick="btnEliminarGasto_Click" />
+        </div>
+
+    </div>
+</div>
 </div>
 
 
@@ -387,6 +476,7 @@
         txt.focus();
         txt.select();
     });
+
 
 
     // Al salir del textbox → restaurar label por ahora
@@ -426,7 +516,8 @@
 
 
 
-            document.getElementById('<%= lnkAbrirModalEditar.ClientID %>'). click();
+            document.getElementById('<%= lnkAbrirModalEditar.ClientID %>').click();
+            
         });
 
         function formatearEuro(valor) {
@@ -448,9 +539,56 @@
         }
 
         function abrirModalGasto() {
+            document.getElementById('<%= hfEditarGasto.ClientID %>').value = 0;
+
+            document.getElementById('<%= ddlCrearGasto.ClientID %>').selectedIndex = 0;
+            document.getElementById('<%= txtMontoGasto.ClientID %>').value = "";
+            document.getElementById('<%= txtFechaGasto.ClientID %>').value = "";
+            document.getElementById('<%= txtComentarioGasto.ClientID %>').value = "";
+
+
             var modal = new bootstrap.Modal(document.getElementById('modalAñadirGasto'));
             modal.show();
         }
-      
-        
+        function abrirModalConfirmarEliminar(boton) {
+            // aquí "boton" es exactamente el mismo elemento que "this"
+            // ahora podemos hacer boton.dataset.gastoid, boton.dataset.categoria, etc.
+
+            var modal = new bootstrap.Modal(document.getElementById('modalEliminarGasto'));
+            document.getElementById("spanCategoriaEliminar").textContent = boton.dataset.categoria;
+            document.getElementById("spanMontoEliminar").textContent = boton.dataset.monto;
+            document.getElementById('<%= hfGastoIdEliminar.ClientID %>').value = boton.dataset.gastoid;
+            modal.show();
+        }
+
+        function abrirModalEditarGasto(boton) {
+            var modal = new bootstrap.Modal(document.getElementById('modalAñadirGasto'));
+
+            document.getElementById('<%= hfEditarGasto.ClientID %>').value = boton.dataset.gastoid;
+
+            document.getElementById("<%= ddlCrearGasto.ClientID %>").value = boton.dataset.categoriaid;
+            document.getElementById("<%= txtMontoGasto.ClientID %>").value = boton.dataset.monto;
+            document.getElementById("<%= txtComentarioGasto.ClientID %>").value = boton.dataset.comentario;
+            document.getElementById("<%= txtFechaGasto.ClientID %>").value = boton.dataset.fecha;
+
+            modal.show();
+       }
+        function validarMontoGasto() {
+
+            let value = parseFloat(document.getElementById("<%= txtMontoGasto.ClientID %>").value);
+
+            if (value >= 0.01) {
+                return true;
+            }
+            alert("El monto debe ser mayor a 0")
+            return false;
+
+        }
+
+
+
+
+
+
+
     </script>

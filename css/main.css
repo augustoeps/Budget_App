@@ -486,7 +486,7 @@
 .tabla-gastos-header,
 .tabla-gastos-fila {
     display: grid;
-    grid-template-columns: 0.9fr 0.7fr 1fr 0.6fr 0.7fr;
+    grid-template-columns: 0.9fr 0.7fr 1fr 0.6fr 0.7fr 0.6fr;
     gap: 6px;
     align-items: center;
 }
@@ -550,6 +550,11 @@
     text-align: right;
 }
 
+
+
+
+
+
 .fila-par {
     background: #f8fafc;
 }
@@ -572,3 +577,125 @@
 .color-verde {
     color: #22c55e !important;
 }
+
+.gasto-opciones {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    padding-left: 16px;
+}
+
+.tabla-gastos-header span:last-child {
+    padding-left: 16px;
+    text-align: right;
+}
+
+
+
+
+
+
+.btn-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+    .btn-icono i {
+        font-size: 15px;
+    }
+
+.btn-editar-gasto {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+    .btn-editar-gasto i {
+        color: #6366f1;
+    }
+
+    .btn-editar-gasto:hover {
+        background: rgba(99, 102, 241, 0.2);
+    }
+
+.btn-eliminar-gasto {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+    .btn-eliminar-gasto i {
+        color: #ef4444;
+    }
+
+    .btn-eliminar-gasto:hover {
+        background: rgba(239, 68, 68, 0.2);
+    }
+
+.tabla-gastos-scroll {
+    max-height: 225px;
+    overflow-y: auto;
+}
+
+.tabla-gastos-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.tabla-gastos-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tabla-gastos-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.gastos-seccion {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.filtro-categoria {
+    background: #ffffff;
+    border: 0.5px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+    padding: 1rem;
+    flex: 1;
+}
+
+.filtro-categoria-ddl {
+    width: 100%;
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 0.5px solid #e2e8f0;
+    color: #1e293b;
+    background: #fff;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.btn-filtrar-gastos {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: #6366f1;
+    border: none;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+    .btn-filtrar-gastos:hover {
+        background: #4f46e5;
+    }

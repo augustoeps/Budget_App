@@ -20,12 +20,14 @@ namespace Presupuesto.pages
         {
             if (!IsPostBack)
             {
-                CargarAnios();
-                hfAnio.Value = DateTime.Now.Year.ToString();
-                CargarMeses(DateTime.Now.Year);
-
                 int mesActual = DateTime.Now.Month;
                 int anioActual = DateTime.Now.Year;
+
+
+                CargarAnios();
+                hfAnio.Value = anioActual.ToString();
+                CargarMeses(anioActual);
+
 
                 // 👇 Guardar mes actual en HiddenFields
                 hfMesSeleccionado.Value = mesActual.ToString();
@@ -35,7 +37,7 @@ namespace Presupuesto.pages
                 //carga todos los datos de la pagina principal
                 CargarDatosMes(mesActual, anioActual);
                 CargarCategoriasDropdown();
-                //MostrarGastos();
+                
 
 
 
@@ -78,10 +80,19 @@ namespace Presupuesto.pages
         protected void CargarCategoriasDropdown()
         {
             DataTable dt = CategoriaData.ObtenerCategorias();
+
             ddlCrearGasto.DataSource = dt;
             ddlCrearGasto.DataTextField = "Nombre";
             ddlCrearGasto.DataValueField = "CategoriaId";
             ddlCrearGasto.DataBind();
+
+            
+            ddlFiltrarGastos.DataSource = dt;
+            ddlFiltrarGastos.DataTextField = "Nombre";
+            ddlFiltrarGastos.DataValueField = "CategoriaId";
+            ddlFiltrarGastos.DataBind();
+            ddlFiltrarGastos.Items.Insert(0, new ListItem("Todos", "null"));
+
         }
 
         protected void lnkMes_Command(object sender, CommandEventArgs e)
@@ -98,9 +109,12 @@ namespace Presupuesto.pages
             hfAnio.Value = Anio.ToString();
 
             DataTable mesAnio = PeriodoData.ObtenerMesyAnio(mes, Anio);
-            DataTable presuestoCategoria = PresupuestoCategoriaData.ObtenerCategoriasPorMes(mes, Anio);
+         
             if (mesAnio.Rows.Count > 0)
             {
+                int periodoId = Convert.ToInt32(mesAnio.Rows[0]["periodoId"]);
+                DataTable presuestoCategoria = PresupuestoCategoriaData.ObtenerCategoriasPorMes(periodoId);
+
 
                 if (presuestoCategoria.Rows.Count > 0)
                 {
@@ -110,18 +124,19 @@ namespace Presupuesto.pages
 
 
                 }
-                else {
-
+                else
+                {
                     //Entra aqui cuando es un mes nuevo que no tiene categoria asignadas en la tabla PresupustoCategoria
                     //Como en el front uso un repeater con "monto asignado" pero esta consulta no devuelve esa row se le añade
                     //esa row con valor 0, para asi no teneer que usar 2 repeater uno para cada categoria
                     DataTable categorias = CategoriaData.ObtenerCategorias();
 
                     categorias.Columns.Add("MontoAsignado", typeof(decimal));
-
+                    categorias.Columns.Add("Sobrante", typeof(decimal));
                     foreach (DataRow row in categorias.Rows)
                     {
                         row["MontoAsignado"] = 0;
+                        row["Sobrante"] = 0;
                     }
 
                     rptCategorias.DataSource = categorias;
@@ -158,7 +173,6 @@ namespace Presupuesto.pages
             if (dt.Rows.Count > 0)
             {
                 decimal ingreso = Convert.ToDecimal(dt.Rows[0]["Ingreso"]);
-                System.Diagnostics.Debug.WriteLine(ingreso);
                 lblIngreso.Text = ingreso.ToString("N2") + " €";
             }
             else
@@ -171,14 +185,25 @@ namespace Presupuesto.pages
         {
 
             if (string.IsNullOrWhiteSpace(txtIngreso.Text)) return;
+            if (string.IsNullOrWhiteSpace(TxtAhorro.Text)) return;
 
+            
             int mes = int.Parse(hfMesSeleccionado.Value);
             int anio = int.Parse(hfAnio.Value);
             decimal ingreso = decimal.Parse(txtIngreso.Text);
+            decimal ahorro = decimal.Parse(TxtAhorro.Text);
+            if (ingreso <= 0 ||  ahorro < 0 ) {
+                return; 
+            }
+            
 
-            PeriodoData.InsertarPeriodo(mes, anio, ingreso);
+            PeriodoData.InsertarPeriodo(mes, anio, ingreso, ahorro);
 
             txtIngreso.Text = string.Empty;
+            TxtAhorro.Text = string.Empty;
+
+            decimal IngresoMenosAhorro = ingreso - ahorro;
+
             lblPresupuestoRestante.Text = ingreso.ToString("N2") + " €";
             ScriptManager.RegisterStartupScript(this, this.GetType(),
             "cerrarModal",
@@ -238,7 +263,8 @@ namespace Presupuesto.pages
             AbrirModalEditar();
         }
 
-        protected void ObtenerCategoria() {
+        protected void ObtenerCategoria()
+        {
 
             DataTable Categorias = CategoriaData.ObtenerCategorias();
             rptCategorias.DataSource = Categorias;
@@ -277,16 +303,20 @@ namespace Presupuesto.pages
 
             //Solo se ejecuta una vez porque optimizamos
             Presupuesto.DATA.PresupuestoCategoriaData.GuardarPresupuestos(periodo, datos);
-
+            CargarDatosMes(mes, anio);
         }
 
         private void CargarDatosMes(int mes, int anio)
         {
+
             DataTable mesAnio = PeriodoData.ObtenerMesyAnio(mes, anio);
-            DataTable presupuestoCategoria = PresupuestoCategoriaData.ObtenerCategoriasPorMes(mes, anio);
+       
 
             if (mesAnio.Rows.Count > 0)
             {
+                int periodoId = Convert.ToInt32(mesAnio.Rows[0]["periodoId"]);
+                DataTable presupuestoCategoria = PresupuestoCategoriaData.ObtenerCategoriasPorMes(periodoId);
+
                 if (presupuestoCategoria.Rows.Count > 0)
                 {
                     rptCategorias.DataSource = presupuestoCategoria;
@@ -298,10 +328,11 @@ namespace Presupuesto.pages
                     DataTable categorias = CategoriaData.ObtenerCategorias();
 
                     categorias.Columns.Add("MontoAsignado", typeof(decimal));
-
+                    categorias.Columns.Add("Sobrante", typeof(decimal));
                     foreach (DataRow row in categorias.Rows)
                     {
                         row["MontoAsignado"] = 0;
+                        row["Sobrante"] = 0;
                     }
 
                     rptCategorias.DataSource = categorias;
@@ -312,11 +343,13 @@ namespace Presupuesto.pages
             MostrarIngreso(mesAnio);
         }
 
-        protected void btnGuardarGasto_Click(Object sender, EventArgs e) {
+        protected void btnGuardarGasto_Click(Object sender, EventArgs e)
+        {
+
 
 
             int categoria = int.Parse(ddlCrearGasto.SelectedValue);
-            decimal gasto = decimal.Parse(txtMontoGasto.Text);
+            decimal gasto = decimal.Parse(txtMontoGasto.Text, System.Globalization.CultureInfo.InvariantCulture);
             string comentario = txtComentarioGasto.Text;
 
             DateTime fecha;
@@ -336,17 +369,36 @@ namespace Presupuesto.pages
             System.Diagnostics.Debug.WriteLine("PeriodoId: " + PeriodoID);
             System.Diagnostics.Debug.WriteLine("CategoriaId: " + categoria);
 
-            DATA.GastoData.InsertarGasto(PeriodoID, categoria, gasto, fecha, comentario);
+            int valueEditOrCreateGasto = int.Parse(hfEditarGasto.Value);
 
-            MostrarGastos();
+            if (valueEditOrCreateGasto == 0) {
+                System.Diagnostics.Debug.WriteLine("ENTRE EN CREAR GASTO");
+                System.Diagnostics.Debug.WriteLine("Monto: " + gasto);
+                DATA.GastoData.InsertarGasto(PeriodoID, categoria, gasto, fecha, comentario);
 
+                MostrarGastos();
+
+            }else {
+                System.Diagnostics.Debug.WriteLine("ENTRE EN EDTIAR GASTO");
+                System.Diagnostics.Debug.WriteLine("GastoID: " + valueEditOrCreateGasto);
+                System.Diagnostics.Debug.WriteLine("CategoriaId: " + categoria);
+                System.Diagnostics.Debug.WriteLine("Monto: " + gasto);
+                System.Diagnostics.Debug.WriteLine("comentario: " + comentario);
+                System.Diagnostics.Debug.WriteLine("fecha: " + fecha);
+
+                DATA.GastoData.ActualizarGasto(valueEditOrCreateGasto, PeriodoID, categoria, gasto, fecha, comentario);
+
+                MostrarGastos();
+                
+            }
+            CargarDatosMes(mes, anio);
         }
 
-        protected void MostrarGastos()
+        protected void MostrarGastos(string categoria = null)
         {
             int mes = int.Parse(hfMesSeleccionado.Value);
             int anio = int.Parse(hfAnio.Value);
-            DataTable datos = DATA.GastoData.ObtenerGastos(mes, anio);
+            DataTable datos = DATA.GastoData.ObtenerGastos(mes, anio, categoria);
 
             if (datos.Rows.Count > 0)
             {
@@ -374,7 +426,9 @@ namespace Presupuesto.pages
                 if (mesAnio.Rows.Count > 0)
                 {
                     decimal ingreso = Convert.ToDecimal(mesAnio.Rows[0]["Ingreso"]);
-                    lblPresupuestoRestante.Text = ingreso.ToString("N2") + " €";
+                    decimal ahorro = Convert.ToDecimal(mesAnio.Rows[0]["Ahorro"]);
+                    decimal restante = ingreso - ahorro;
+                    lblPresupuestoRestante.Text = restante.ToString("N2") + " €";
                 }
                 else
                 {
@@ -405,6 +459,57 @@ namespace Presupuesto.pages
         }
 
 
+        protected void btnEliminarGasto_Click(Object sender, EventArgs e)
+        {
+
+            ScriptManager.RegisterStartupScript(this, this.GetType(),
+                "cerrarModal",
+                "$('#modalEliminarGasto').modal('hide');",
+                true);
+
+            string eliminar = @"DELETE FROM gasto WHERE GastoId = @gastoid";
+            int gastoid =  int.Parse(hfGastoIdEliminar.Value);
+
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+
+            dic.Add("gastoid", gastoid);
+
+            bool value = GastoData.EliminarGasto(eliminar, dic);
+
+            if (value)
+            {
+                
+                MostrarGastos();
+
+            }
+            else {
+                ScriptManager.RegisterStartupScript(this, this.GetType(),
+                "errorEliminar",
+                "alert('No se pudo eliminar el gasto.');",
+                true);
+
+
+            }
 
         }
+
+        protected void FiltrarGastos(Object sender, EventArgs e)
+        {
+            string categoriaSeleccionada = ddlFiltrarGastos.SelectedItem.Text;
+
+            if (categoriaSeleccionada == "Todos")
+            {
+                MostrarGastos(); // sin filtro
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine(categoriaSeleccionada);
+                MostrarGastos(categoriaSeleccionada); // con filtro
+            }
+        }
+
+
+    }
+
+        
     }
